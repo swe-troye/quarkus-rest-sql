@@ -3,6 +3,7 @@ package swe.troye;
 import java.net.URI;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -11,6 +12,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
+import io.quarkus.runtime.StartupEvent;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.pgclient.PgPool;
@@ -21,9 +25,15 @@ public class MovieResource {
     @Inject
     PgPool client;
 
+    @Inject
+    @ConfigProperty(name = "movie.schema.create", defaultValue = "true")
+    boolean schemaCreate;
+
     @PostConstruct
-    void config() {
-        initDB();
+    void config(@Observes StartupEvent ev) {
+        if (schemaCreate) {
+            initDB();
+        }
     }
 
     @GET
@@ -64,6 +74,5 @@ public class MovieResource {
                 .flatMap(m -> client.query("INSERT INTO movies (title) VALUES ('Harry Potter')").execute())
                 .await()
                 .indefinitely();
-
     }
 }

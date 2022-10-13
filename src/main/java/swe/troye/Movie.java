@@ -69,7 +69,7 @@ public class Movie {
                 .transform(m -> m.rowCount() == 1);
     }
 
-    public static Movie from(Row row) {
+    private static Movie from(Row row) {
         return new Movie(row.getLong("id"), row.getString("title"));
     }
 
